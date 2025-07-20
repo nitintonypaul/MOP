@@ -3,6 +3,8 @@ import yfinance as yf
 from sklearn.covariance import LedoitWolf
 from tabulate import tabulate
 import libs.models as models
+import pickle
+import os
 
 # Portfolio Object
 class Portfolio:
@@ -15,6 +17,30 @@ class Portfolio:
         self.data = self.Fetch()
         self.covar = self.Covariance()
 
+    # Saving Portfolio to binary
+    @classmethod
+    def Save(cls, portfolio_instance, name):
+        portfolio_data = {"tickers":portfolio_instance.tickers, "weights":portfolio_instance.weights, "amount":portfolio_instance.amount}
+        os.makedirs('portfolios', exist_ok=True)
+
+        with open(f"portfolios/{name}.bin", 'wb') as file:
+            pickle.dump(portfolio_data, file)
+    
+    # Loading portfolio from binary
+    @classmethod
+    def Load(cls, name):
+        with open(f"portfolios/{name}.bin", 'rb') as file:
+            portfolio_data = pickle.load(file)
+
+        tickers = portfolio_data["tickers"]
+        weights = portfolio_data["weights"]
+        amount = portfolio_data["amount"]
+
+        loadedPortfolio = cls(tickers, amount)
+        loadedPortfolio.weights = weights
+
+        return loadedPortfolio
+    
     # Fetching values
     def Fetch(self, period=100):
         print("FETCHING DATA...")
@@ -47,7 +73,7 @@ class Portfolio:
             table.append([ticker, round(weight, 3), round(weight*self.amount, 2)])
         
         return tabulate(table, headers=["STOCK", "WEIGHT", "AMOUNT"], tablefmt='plain')
-    
+
     # Optimize function to optimize using a valid optimizer
     # Optimizers to date: VARIANCE, MDP
     def Optimize(self, method="variance", p=None, q=None, omega=None, confidence=None):

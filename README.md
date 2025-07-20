@@ -21,7 +21,6 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
 
 * **Advanced Models:** Integration of Black-Litterman with Mean-Variance Optimization (MVO), Conditional Value-at-Risk (CVaR/mean-CVaR), and Entropic Value-at-Risk (EVaR/mean-EVaR).
 * **Robust & Tail-Risk Optimization:** Development of robust optimization techniques and specialized tail-risk models.
-* **Dynamic Portfolio Management:** Features for refreshing portfolios and efficient data persistence (save/load).
 
 ---
 

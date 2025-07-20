@@ -23,3 +23,6 @@ investments.Optimize(method="variance")
 
 print("\nPORTFOLIO DATA AFTER VARIANCE OPTIMIZATION")
 print(investments.Stats())
+
+Portfolio.Save(investments, "firstInvestment")
+print("Portfolio saved to portfolio/firstInvestment.bin")
