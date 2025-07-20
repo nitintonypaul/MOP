@@ -1,16 +1,25 @@
 from libs.portfolio import Portfolio
 
-TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA"]
-AMOUNT = 10000
+#TICKERS = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA"]
+#AMOUNT = 10000
+
+# Inputs
+TICKERS = input("ENTER STOCKS (eg: 'AAPL TSLA MSFT'): ").split(" ")
+AMOUNT = float(input("ENTER INVESTMENT AMOUNT: "))
 
 # Declaring portfolio object
-my_portfolio = Portfolio(tickers=TICKERS, amount=AMOUNT)
+investments = Portfolio(tickers=TICKERS, amount=AMOUNT)
 
-# Optimizing Portfolio with variance
+# Optimizing Portfolio with various objectives
 print("\nPORTFOLIO DATA BEFORE OPTIMIZING")
-print(my_portfolio.Stats())
+print(investments.Stats())
 
-my_portfolio.Optimize(method="variance")
+investments.Optimize(method="mdp")
 
-print("\nPORTFOLIO DATA AFTER OPTIMIZING")
-print(my_portfolio.Stats())
+print("\nPORTFOLIO DATA AFTER MAXIMUM DIVERSIFICATION")
+print(investments.Stats())
+
+investments.Optimize(method="variance")
+
+print("\nPORTFOLIO DATA AFTER VARIANCE OPTIMIZATION")
+print(investments.Stats())
