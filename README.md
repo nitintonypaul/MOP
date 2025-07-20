@@ -36,7 +36,7 @@ To get started with the engine:
 
 1.  **Clone the repository (or download the ZIP file):**
     ```bash
-    git clone https://github.com/nitintonypaul/MOP
+    git clone https://github.com/nitintonypaul/MOP.git
     ```
     
 2.  **Navigate into the directory:**
