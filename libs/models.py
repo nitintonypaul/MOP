@@ -55,7 +55,7 @@ def CVaR(w, tickers, ALPHA, data):
     
     # CVaR Objective 
     # Minimize {v + 1/(1-CONFIDENCE)N * SUM{N} (max(-wR-v, 0))}
-    def CVaR(x):
+    def f(x):
 
         w = x[:-1]
         v = x[-1]
@@ -83,7 +83,7 @@ def CVaR(w, tickers, ALPHA, data):
     minLen = min(len(x) for x in returns_list)
     trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
 
-    result = minimize(CVaR, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
+    result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
     if result.success:
         return result.x
     else:
