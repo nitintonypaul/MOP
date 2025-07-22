@@ -63,7 +63,6 @@ def CVaR(w, tickers, ALPHA, data):
         N = trimmed_returns.shape[0]
         SUM = 0
 
-        # Monte carlo
         for i in range(N):
             sample = trimmed_returns[i]
             var_excess = max(-np.dot(w, sample) - v, 0)
@@ -76,7 +75,7 @@ def CVaR(w, tickers, ALPHA, data):
 
     returns_list = []
     for i in tickers:
-        stock_returns = data[i]["Close"].pct_change().dropna().values
+        stock_returns = data[i]["Close"].pct_change(fill_method=None).dropna().values
         returns_list.append(stock_returns)
 
     # Failsafe
@@ -85,6 +84,49 @@ def CVaR(w, tickers, ALPHA, data):
 
     result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
     if result.success:
-        return result.x
+        return result.x[:-1]
     else:
         raise ValueError("CVaR Optimization failed")
+
+# Mean Conditional Value-at-Risk (MCVaR) model
+def MCVaR(w, tickers, ALPHA, data):
+    
+    # MCVaR Objective 
+    # Maximize {weights.T * returns - CVaR}
+    def f(x):
+
+        w = x[:-1]
+        v = x[-1]
+
+        N = trimmed_returns.shape[0]
+        SUM = 0
+        MEAN_TERM = 0
+
+        for i in range(N):
+            sample = trimmed_returns[i]
+            meanT = np.dot(w, sample)
+            MEAN_TERM += meanT
+            var_excess = max((-1*meanT) - v, 0)
+            SUM += var_excess
+
+        cvar = v + (SUM / ((1 - ALPHA) * N))
+
+        return cvar - (MEAN_TERM/N)
+
+    V = 1
+    x0 = np.append(w, V)
+
+    returns_list = []
+    for i in tickers:
+        stock_returns = data[i]["Close"].pct_change(fill_method=None).dropna().values
+        returns_list.append(stock_returns)
+
+    # Failsafe
+    minLen = min(len(x) for x in returns_list)
+    trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
+
+    result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
+    if result.success:
+        return result.x[:-1]
+    else:
+        raise ValueError("Mean-CVaR Optimization failed")

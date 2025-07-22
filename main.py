@@ -36,11 +36,10 @@ investments = Portfolio(tickers=TICKERS, amount=AMOUNT)
 print("\nPORTFOLIO DATA BEFORE OPTIMIZING")
 print(investments.Stats())
 
-# If you have views, investments.Optimize(method="mean-variance", p=P, q=Q, omega=OMEGA, risk=3)
-investments.Optimize(method="mean-variance")
-print("\nPORTFOLIO DATA AFTER MEAN VARIANCE")
-print(investments.Stats())
-
 investments.Optimize(method="cvar")
 print("\nPORTFOLIO DATA AFTER CVAR")
+print(investments.Stats())
+
+investments.Optimize(method="mean-cvar")
+print("\nPORTFOLIO DATA AFTER MCVAR")
 print(investments.Stats())
