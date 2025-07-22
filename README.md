@@ -14,12 +14,13 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
 
 * **Variance Optimization:** Focuses on minimizing portfolio variance for a given set of returns.
 * **Maximum Diversification Optimization (MDP):** Implements risk diversification strategies beyond simple variance reduction.
+* **Mean-Variance Optimization (MVO):** Balances expected return (Black Litterman) against portfolio risk by maximizing the difference between expected return and a risk-adjusted variance penalty, aiming for an optimal risk-return trade-off. 
 
 ---
 
 ## Upcoming Enhancements
 
-* **Advanced Models:** Integration of Black-Litterman with Mean-Variance Optimization (MVO), Conditional Value-at-Risk (CVaR/mean-CVaR), and Entropic Value-at-Risk (EVaR/mean-EVaR).
+* **Advanced Models:** Integration of Conditional Value-at-Risk models (CVaR/mean-CVaR) and Entropic Value-at-Risk models (EVaR/mean-EVaR).
 * **Robust & Tail-Risk Optimization:** Development of robust optimization techniques and specialized tail-risk models.
 
 ---

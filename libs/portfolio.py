@@ -1,3 +1,4 @@
+# Modules
 import numpy as np
 import yfinance as yf
 from sklearn.covariance import LedoitWolf
@@ -6,7 +7,7 @@ import libs.models as models
 import pickle
 import os
 
-# Portfolio Object
+# Portfolio Class
 class Portfolio:
 
     # Caching essential values
@@ -76,14 +77,15 @@ class Portfolio:
 
     # Optimize function to optimize using a valid optimizer
     # Optimizers to date: VARIANCE, MDP
-    def Optimize(self, method="variance", p=None, q=None, omega=None, confidence=None):
+    def Optimize(self, method="variance", risk=1, time=1, p=np.array([0, 0, 0]), q=np.array([0, 0, 0]), omega=np.array([0, 0, 0]), confidence=None):
         
         # Resetting weights to prevent false convergence
         tempweights = np.ones(len(self.tickers)) / len(self.tickers)
 
         optimizers = {
-            "variance":[models.Variance, [tempweights, self.covar]],
-            "mdp":[models.MDP, [tempweights, self.covar, self.Volatility()]]
+            "variance":[models.Variance, [tempweights, self.covar*time]],
+            "mdp":[models.MDP, [tempweights, self.covar*time, self.Volatility()*np.sqrt(time)]],
+            "mean-variance":[models.MVO, [tempweights, self.covar*time, risk, self.tickers, p, q, omega]]
         }
 
         if method.lower() in optimizers:
