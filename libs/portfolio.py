@@ -10,6 +10,9 @@ import os
 # Portfolio Class
 class Portfolio:
 
+    class PortfolioError(Exception):
+        pass
+
     # Caching essential values
     def __init__(self, tickers, amount):
         self.tickers = tickers
@@ -17,6 +20,7 @@ class Portfolio:
         self.weights = np.ones(len(tickers)) / len(tickers)
         self.data = self.Fetch()
         self.covar = self.Covariance()
+        self.history = self.Fetch(period=365)
 
     # Saving Portfolio to binary
     @classmethod
@@ -77,20 +81,35 @@ class Portfolio:
 
     # Optimize function to optimize using a valid optimizer
     # Optimizers to date: VARIANCE, MDP
-    def Optimize(self, method="variance", risk=1, time=1, p=np.array([0, 0, 0]), q=np.array([0, 0, 0]), omega=np.array([0, 0, 0]), confidence=None):
+    def Optimize(
+            self, 
+            method="variance", 
+            risk=0.2, 
+            time=1, 
+            p=np.array([0, 0, 0]), 
+            q=np.array([0, 0, 0]), 
+            omega=np.array([0, 0, 0]), 
+            confidence=0.9,
+            lambdaBL=2.5,
+            tauBL=0.025
+        ):
         
         # Resetting weights to prevent false convergence
         tempweights = np.ones(len(self.tickers)) / len(self.tickers)
 
+        # Available Optimizers dictionary
         optimizers = {
             "variance":[models.Variance, [tempweights, self.covar*time]],
             "mdp":[models.MDP, [tempweights, self.covar*time, self.Volatility()*np.sqrt(time)]],
-            "mean-variance":[models.MVO, [tempweights, self.covar*time, risk, self.tickers, p, q, omega]]
+            "mean-variance":[models.MVO, [tempweights, self.covar*time, risk, self.tickers, p, q, omega, lambdaBL, tauBL]],
+            "cvar":[models.CVaR, [tempweights, self.tickers, confidence, self.history]]
         }
 
+        # Checking if optimizer is valid
         if method.lower() in optimizers:
             function, args = optimizers[method.lower()]
             self.weights = function(*args)
         
         else:
-            raise ValueError("Invalid optimizer method")
+            raise self.PortfolioError("Invalid Optimizer method")
+    

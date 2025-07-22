@@ -34,11 +34,10 @@ def MDP(w, SIGMA, sigma):
         raise ValueError("Max Diversification Optimization failed")
 
 # Mean-Variance model
-def MVO(w, SIGMA, LAMBDA, tickers, p, q, omega):
+def MVO(w, SIGMA, LAMBDA, tickers, p, q, omega, lambdaBL, TAU):
 
     # Computing Black Litterman Returns
-    BLret = computeBLreturns(tickers, SIGMA, P=p, Q=q, OMEGA=omega)
-    print(BLret)
+    BLret = computeBLreturns(tickers, SIGMA, P=p, Q=q, OMEGA=omega, lam=lambdaBL, TAU=TAU)
 
     # MVO Objective
     # maximize {weights.T * returns - VARIANCE}
@@ -50,3 +49,42 @@ def MVO(w, SIGMA, LAMBDA, tickers, p, q, omega):
         return result.x
     else:
         raise ValueError("Mean-Variance Optimization failed")
+
+# Conditional Value-at-Risk (CVaR) model
+def CVaR(w, tickers, ALPHA, data):
+    
+    # CVaR Objective 
+    # Minimize {v + 1/(1-CONFIDENCE)N * SUM{N} (max(-wR-v, 0))}
+    def CVaR(x):
+
+        w = x[:-1]
+        v = x[-1]
+
+        N = trimmed_returns.shape[0]
+        SUM = 0
+
+        # Monte carlo
+        for i in range(N):
+            sample = trimmed_returns[i]
+            var_excess = max(-np.dot(w, sample) - v, 0)
+            SUM += var_excess
+
+        return v + (SUM / ((1 - ALPHA) * N))
+
+    V = 1
+    x0 = np.append(w, V)
+
+    returns_list = []
+    for i in tickers:
+        stock_returns = data[i]["Close"].pct_change().dropna().values
+        returns_list.append(stock_returns)
+
+    # Failsafe
+    minLen = min(len(x) for x in returns_list)
+    trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
+
+    result = minimize(CVaR, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
+    if result.success:
+        return result.x
+    else:
+        raise ValueError("CVaR Optimization failed")
