@@ -112,7 +112,7 @@ When you create a `Portfolio` object, it automatically:
 -   Initializes the portfolio with equal weights for all assets.
     
     ```py
-    from portfolio import Portfolio
+    from libs.portfolio import Portfolio
     import logging
 
     # Configure basic logging to see the engine's output
