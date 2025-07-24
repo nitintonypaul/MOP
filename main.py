@@ -1,4 +1,4 @@
-from libs.portfolio import Portfolio
+from mopEngine.portfolio import Portfolio
 import numpy as np
 import logging
 from tabulate import tabulate

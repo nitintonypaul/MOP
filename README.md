@@ -94,7 +94,7 @@ To get started with the engine:
     python main.py
     ```
 
-The core optimization engine is located in the `libs/` directory. You can integrate it into your own Python projects by copying the `libs/` folder.
+The core optimization engine is located in the `mopEngine/` directory. You can integrate it into your own Python projects by copying the `mopEngine/` folder.
 
 ---
 
@@ -112,7 +112,7 @@ When you create a `Portfolio` object, it automatically:
 -   Initializes the portfolio with equal weights for all assets.
     
     ```py
-    from libs.portfolio import Portfolio
+    from mopEngine.portfolio import Portfolio
     import logging
 
     # Configure basic logging to see the engine's output

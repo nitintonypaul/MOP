@@ -3,7 +3,7 @@ import numpy as np
 import yfinance as yf
 from sklearn.covariance import LedoitWolf
 from tabulate import tabulate
-import libs.models as models
+import mopEngine.models as models
 import pickle
 import os
 import logging

@@ -1,6 +1,6 @@
 from scipy.optimize import minimize
 import numpy as np
-from libs.blackLitterman import computeBLreturns
+from mopEngine.blackLitterman import computeBLreturns
 
 # Variance model
 def Variance(w, SIGMA):
