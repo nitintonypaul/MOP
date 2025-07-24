@@ -109,7 +109,7 @@ Use the `.Stats()` method to see the current allocation of assets in your portfo
     # Display the initial, equally-weighted portfolio
     print("--- Initial Portfolio Allocation ---")
     print(p.Stats())
-    ```
+```
 
 **Output:**
 
