@@ -1,13 +1,18 @@
 import time
 import yfinance as yf
 import numpy as np
+import logging
+
+# Logging system
+# Taking config from root
+logger = logging.getLogger(__name__)
 
 # Black Litterman return model
 def computeBLreturns(tickers, COVARIANCE, P, Q, OMEGA, lam=2.5,  TAU=0.025):
     
     # Computing market cap
     data = []
-    print("FETCHING MARKET CAP...")
+    logger.info("FETCHING MARKET CAPITAL")
     for ticker in tickers:
         # Obtaining market cap
         info = yf.Ticker(ticker).info
@@ -16,6 +21,7 @@ def computeBLreturns(tickers, COVARIANCE, P, Q, OMEGA, lam=2.5,  TAU=0.025):
         # Logging message if market caps are unable to be found
         # Takes weight as 0
         if np.isnan(data[-1]) or data[-1] == 0:
+            logger.warning(f"UNABLE TO FETCH MARKET CAP FOR {ticker}")
             print(f"Unable to get market capital for {ticker}")
 
         # Sleeping for 1 second to prevent throttling yfinance
@@ -35,6 +41,7 @@ def computeBLreturns(tickers, COVARIANCE, P, Q, OMEGA, lam=2.5,  TAU=0.025):
     # When views are not given
     if (P.any() == False and Q.any() == False and OMEGA.any() == False):
         # Market Implied returns are returned
+        logger.info("BLACK-LITTERMAN SUCCESSFUL")
         return BIG_PIE
     
     else:
@@ -43,6 +50,7 @@ def computeBLreturns(tickers, COVARIANCE, P, Q, OMEGA, lam=2.5,  TAU=0.025):
         try:
             OMEGA_INV = np.linalg.inv(OMEGA)
         except np.linalg.LinAlgError:
+            logger.error("NON-INVERTIBLE OMEGA")
             raise ValueError("UNCERTAINTY MATRIX (OMEGA) IS NON-INVERTIBLE")
 
         # Computing two mutliples of Black Litterman Model
@@ -51,4 +59,5 @@ def computeBLreturns(tickers, COVARIANCE, P, Q, OMEGA, lam=2.5,  TAU=0.025):
         
         # Flattening to 1D array... if it isnt
         BLreturns = (M1 @ M2).flatten()
+        logger.info("BLACK-LITTERMAN SUCCESSFUL")
         return BLreturns

@@ -60,8 +60,7 @@ class Portfolio:
         return loadedPortfolio
     
     # Fetching values
-    # Shift to 252 for trading year
-    def Fetch(self, period=365):
+    def Fetch(self, period=465):
 
         logger.info("FETCHING DATA")
 
@@ -165,7 +164,9 @@ class Portfolio:
         # Computing global returns of each asset from portfolio history
         globalReturns = []
         for ticker in self.tickers:
-            stock_history = self.history[ticker]["Close"].pct_change(fill_method=None).dropna().values
+            # Data isolation from Covariance matrix data
+            # i.e. first 365 values
+            stock_history = self.history[ticker]["Close"].pct_change(fill_method=None).dropna().values[:365]
             globalReturns.append(stock_history)
         globalReturns = np.array(globalReturns)
 

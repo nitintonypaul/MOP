@@ -1,9 +1,16 @@
 from scipy.optimize import minimize
 import numpy as np
 from mopEngine.blackLitterman import computeBLreturns
+import logging
+
+# Logging system
+# Taking config from root
+logger = logging.getLogger(__name__)
 
 # Variance model
 def Variance(w, SIGMA):
+
+    logger.info("VARIANCE OPTIMIZATION INITIATED")
 
     # Variance Objective
     # minimize {weights.T * COVARIANCE * weights}
@@ -12,12 +19,16 @@ def Variance(w, SIGMA):
     
     result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
     if result.success:
+        logger.info("VARIANCE OPTIMIZATION SUCCESSFUL")
         return result.x
     else:
+        logger.error("VARIANCE OPTIMIZATION FAILED")
         raise ValueError("Variance Optimization failed")
 
 # Maximum Diversification Portfolio Model
 def MDP(w, SIGMA, sigma):
+
+    logger.info("MDP OPTIMIZATION INITIATED")
 
     # MDP Objecitve
     # maximize {(weights.T * assetVolatility) / sqrt(VARIANCE)}
@@ -29,12 +40,16 @@ def MDP(w, SIGMA, sigma):
     
     result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
     if result.success:
+        logger.info("MDP OPTIMIZATION SUCCESSFUL")
         return result.x
     else:
+        logger.error("MDP OPTIMIZATION FAILED")
         raise ValueError("Max Diversification Optimization failed")
 
 # Mean-Variance model
 def MVO(w, SIGMA, LAMBDA, tickers, p, q, omega, lambdaBL, TAU):
+
+    logger.info("MVO OPTIMIZATION INITIATED")
 
     # Computing Black Litterman Returns
     BLret = computeBLreturns(tickers, SIGMA, P=p, Q=q, OMEGA=omega, lam=lambdaBL, TAU=TAU)
@@ -46,13 +61,17 @@ def MVO(w, SIGMA, LAMBDA, tickers, p, q, omega, lambdaBL, TAU):
     
     result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
     if result.success:
+        logger.info("MVO OPTIMIZATION SUCCESSFUL")
         return result.x
     else:
+        logger.error("MVO OPTIMIZATION FAILED")
         raise ValueError("Mean-Variance Optimization failed")
 
 # Conditional Value-at-Risk (CVaR) model
 def CVaR(w, tickers, ALPHA, data):
     
+    logger.info("CVAR OPTIMIZATION INITIATED")
+
     # CVaR Objective 
     # Minimize {v + 1/(1-CONFIDENCE)N * SUM{N} (max(-wR-v, 0))}
     def f(x):
@@ -84,13 +103,17 @@ def CVaR(w, tickers, ALPHA, data):
 
     result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
     if result.success:
+        logger.info("CVAR OPTIMIZATION SUCCESSFUL")
         return result.x[:-1]
     else:
+        logger.error("CVAR OPTIMIZATION FAILED")
         raise ValueError("CVaR Optimization failed")
 
 # Mean Conditional Value-at-Risk (MCVaR) model
 def MCVaR(w, tickers, ALPHA, data):
     
+    logger.info("MCVAR OPTIMIZATION INITIATED")
+
     # MCVaR Objective 
     # Maximize {weights.T * returns - CVaR}
     def f(x):
@@ -127,6 +150,8 @@ def MCVaR(w, tickers, ALPHA, data):
 
     result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
     if result.success:
+        logger.info("MCVAR OPTIMIZATION SUCCESSFUL")
         return result.x[:-1]
     else:
+        logger.error("MCVAR OPTIMIZATION FAILED")
         raise ValueError("Mean-CVaR Optimization failed")
