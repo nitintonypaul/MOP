@@ -20,12 +20,6 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
 
 ---
 
-## Upcoming Enhancements
-
-* **Advanced Models:** Integration of Robust Mean-Variance (RMVO) and Entropic Value-at-Risk models (EVaR/mean-EVaR).
-
----
-
 ## Disclaimer
 
 This software is provided for **educational and research purposes only**. It is not intended for live trading or investment decisions. The author is **not liable for any financial losses or damages** incurred from the use of this software. Users should exercise their own due diligence and consult with a financial professional.

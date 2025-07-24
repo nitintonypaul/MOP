@@ -1,5 +1,18 @@
 from libs.portfolio import Portfolio
 import numpy as np
+import logging
+from tabulate import tabulate
+
+# Logging configurations
+# Logging to terminal
+logging.basicConfig(
+    level=logging.INFO, 
+    format="[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[
+        logging.StreamHandler() 
+    ]
+)
 
 #TICKERS = ["AAPL", "TSLA", "MSFT", "JPM"]
 #AMOUNT = 10000
@@ -40,6 +53,10 @@ investments.Optimize(method="cvar")
 print("\nPORTFOLIO DATA AFTER CVAR")
 print(investments.Stats())
 
-investments.Optimize(method="mean-cvar")
-print("\nPORTFOLIO DATA AFTER MCVAR")
+investments.Optimize(method="mdp")
+print("\nPORTFOLIO DATA AFTER MDP")
 print(investments.Stats())
+
+# MVB (Minimum Viable Backtest)
+print("\nPERFORMANCE METRICS")
+print(tabulate(list(investments.Performance()), headers=["METRIC", "VALUE"], tablefmt="plain"))
