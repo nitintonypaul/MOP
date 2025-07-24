@@ -94,7 +94,7 @@ To get started with the engine:
     python main.py
     ```
 
-The core optimization engine is located in the `lib/` directory. You can integrate it into your own Python projects by copying the `lib/` folder.
+The core optimization engine is located in the `libs/` directory. You can integrate it into your own Python projects by copying the `libs/` folder.
 
 ---
 
