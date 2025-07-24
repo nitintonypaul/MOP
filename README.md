@@ -25,9 +25,36 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
 
 ---
 
-## Disclaimer
+## Workflow
 
-This software is provided for **educational and research purposes only**. It is not intended for live trading or investment decisions. The author is **not liable for any financial losses or damages** incurred from the use of this software. Users should exercise their own due diligence and consult with a financial professional.
+```mermaid
+%% The User's Journey with the Portfolio Engine
+graph TD
+    subgraph "Step 1: Initialization"
+        A[Start: Provide Tickers & Amount] --> B(Create Portfolio Instance)
+        C[Start: Provide Filename] --> D(Load Portfolio Instance)
+    end
+    
+    B --> E{Portfolio Object Ready}
+    D --> E
+
+    subgraph "Step 2: Take Action"
+        E -- "Call .Optimize(method, ...)" --> F[Select & Run Optimizer]
+        F --> G[Update Portfolio Weights]
+        G --> E
+        
+        E -- "Call .Stats() / .Performance()" --> H[Generate Reports]
+        
+        E -- "Call .Save(filename)" --> I[Save Weights to File]
+    end
+
+    subgraph "Step 3: Endpoints"
+        H --> J((View Output))
+        I --> K((File Saved))
+    end
+    
+    style E fill:#000,stroke:#111,stroke-width:2px
+```
 
 ---
 
@@ -206,6 +233,11 @@ This tutorial covers the complete workflow of the Multi-Objective Portfolio Allo
 
 ---
 
+## Disclaimer
+
+This software is provided for **educational and research purposes only**. It is not intended for live trading or investment decisions. The author is **not liable for any financial losses or damages** incurred from the use of this software. Users should exercise their own due diligence and consult with a financial professional.
+
+---
 ## License
 
 This project is open-sourced under the **Apache 2.0 License**.
