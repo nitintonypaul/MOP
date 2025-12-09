@@ -159,7 +159,7 @@ class Portfolio:
     # A minimum Viable Backtest using stock history over 1 year   
     def Performance(self):
         
-        logger.info("INITIATING BACKTEST (0 REBALANCES)")
+        logger.info("INITIATING BACKTEST (CONSTANT WEIGHTS)")
 
         # Computing global returns of each asset from portfolio history
         globalReturns = []
