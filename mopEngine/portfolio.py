@@ -9,14 +9,20 @@ import os
 import logging
 
 # Logging system
-# Taking config from root
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Adding handler if no handlers exist
+if not logger.hasHandlers():
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter("[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s", "%H:%M:%S")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
 # Portfolio Class
 class Portfolio:
 
     # PortfolioError
-    # A nice touch
     class PortfolioError(Exception):
         pass
 
@@ -33,21 +39,21 @@ class Portfolio:
     @classmethod
     def Save(cls, portfolio_instance, name):
 
-        logger.info(f"Saving portfolio to {name}.bin")
+        logger.info(f"Saving portfolio to {name}.folio")
 
         portfolio_data = {"tickers":portfolio_instance.tickers, "weights":portfolio_instance.weights, "amount":portfolio_instance.amount}
         os.makedirs('portfolios', exist_ok=True)
 
-        with open(f"portfolios/{name}.bin", 'wb') as file:
+        with open(f"portfolios/{name}.folio", 'wb') as file:
             pickle.dump(portfolio_data, file)
     
     # Loading portfolio from binary
     @classmethod
     def Load(cls, name):
 
-        logger.info(f"Loading portfolio from {name}.bin")
+        logger.info(f"Loading portfolio from {name}.folio")
 
-        with open(f"portfolios/{name}.bin", 'rb') as file:
+        with open(f"portfolios/{name}.folio", 'rb') as file:
             portfolio_data = pickle.load(file)
 
         tickers = portfolio_data["tickers"]
@@ -126,7 +132,8 @@ class Portfolio:
             confidence=0.9,
             lambdaBL=2.5,
             tauBL=0.025,
-            fraction=1
+            fraction=1,
+            theta=0.3
         ):
 
         tickers_length = len(self.tickers)
@@ -146,7 +153,8 @@ class Portfolio:
             "mean-variance":[models.MVO, [tempweights, self.covar*time, risk, self.tickers, p, q, omega, lambdaBL, tauBL]],
             "cvar":[models.CVaR, [tempweights, self.tickers, confidence, self.history]],
             "mean-cvar":[models.MCVaR, [tempweights, self.tickers, confidence, self.history]],
-            "kelly": [models.Kelly, [tempweights, fraction, self.tickers, self.history]]
+            "kelly": [models.Kelly, [tempweights, fraction, self.tickers, self.history]],
+            "erm": [models.ERM, [tempweights, theta, self.tickers, self.history]]
         }
 
         # Checking if optimizer is valid
@@ -158,56 +166,70 @@ class Portfolio:
             logger.error("INVALID OPTIMIZER")
             raise self.PortfolioError(f"Invalid Optimizer method: {method}")
 
-    # A minimum Viable Backtest using stock history over 1 year   
-    def Performance(self):
+    # Portfolio Performance Analysis 
+    def Performance(self, start_date="2017-01-01", end_date="2018-01-01", cost=0):
+        # Fetching Data
+        try:
+            logger.info("INITIATING PORTFOLIO BACKTEST")
+            logger.info("FETCHING BACKTEST DATA")
+            closes = yf.download(tickers=self.tickers, start=start_date, end=end_date, group_by="ticker", auto_adjust=True)
+            
+            if closes.empty:
+                logger.warning("FETCH FAILED")
+                raise self.PortfolioError("No data returned from yfinance")
+            logger.info("FETCH SUCCESSFUL")
+
+            # Truncating to level data
+            closes = closes.loc[:, (slice(None), "Close")]
+            closes.columns = closes.columns.get_level_values(0)
+            equityReturns = closes.pct_change(fill_method=None).dropna().values
+
+            # Computing portfolio returns
+            portfolioReturns = []
+            T = len(equityReturns)
+            for t in range(T):
+                if t != 0:
+                    rweights = self.weights * (1 + equityReturns[t-1])
+                    rweights /= rweights.sum()
+
+                    turnover = np.sum(np.abs(self.weights - rweights))
+                    slippage = cost * turnover
+                else:
+                    slippage = 0
+
+                portfolioReturn = self.weights @ equityReturns[t] - slippage
+                portfolioReturns.append(portfolioReturn)
+
+            # Caching repeated or risky values
+            portfolioReturns = np.array(portfolioReturns)
+            portfolioAvg = portfolioReturns.mean()
+            downsideSTD = portfolioReturns[portfolioReturns < 0].std()
+
+            # Metrics to be displayed
+            SHARPE = np.sqrt(252) * portfolioAvg / portfolioReturns.std()
+            SORTINO = np.sqrt(252) * portfolioAvg / downsideSTD if downsideSTD > 0 else np.nan
+            VOLATILITY = portfolioReturns.std() * np.sqrt(252)
+            AVERAGE = portfolioAvg
+            TOTAL = np.prod(1 + portfolioReturns) - 1
+            CAGR = (1+TOTAL) ** (252/T) - 1
+
+            # Metrics and Corresponding values
+            metrics = [
+                'Sharpe Ratio',
+                'Sortino Ratio',
+                'Volatility',
+                'Mean Return',
+                'Total Return',
+                'CAGR'
+            ]
+            values = [VOLATILITY, AVERAGE, TOTAL, CAGR]
+            results = [round(SHARPE, 2), round(SORTINO, 2)] + [f"{round(x*100, 2)}%" for x in values]
+
+            logger.info("BACKTEST SUCCESSFUL")
+
+            # Returning in table format
+            return (zip(metrics, results))
         
-        logger.info("INITIATING BACKTEST (CONSTANT WEIGHTS)")
-
-        # Computing global returns of each asset from portfolio history
-        globalReturns = []
-        for ticker in self.tickers:
-            # Data isolation from Covariance matrix data
-            # i.e. first 365 values
-            stock_history = self.history[ticker]["Close"].pct_change(fill_method=None).dropna().values[:365]
-            globalReturns.append(stock_history)
-        globalReturns = np.array(globalReturns)
-
-        # Computing portfolio returns (weight * each element in global returns)
-        portfolioReturns = []
-        for returns in globalReturns.T:
-            RETURN = self.weights @ returns
-            portfolioReturns.append(RETURN)
-        
-        # Caching repeated or risky values
-        portfolioReturns = np.array(portfolioReturns)
-        portfolioAvg = portfolioReturns.mean()
-        downsideSTD = portfolioReturns[portfolioReturns < 0].std()
-        
-        # Metrics to be displayed
-        SHARPE = portfolioAvg / portfolioReturns.std()
-        SORTINO = portfolioAvg / downsideSTD if downsideSTD > 0 else np.nan
-        VOLATILITY = portfolioReturns.std() * np.sqrt(252)
-        MAX_RETURNS = max(portfolioReturns)
-        MIN_RETURNS = min(portfolioReturns)
-        AVERAGE = portfolioAvg
-        TOTAL = np.prod(1 + portfolioReturns) - 1
-        HIT = len(portfolioReturns[portfolioReturns > 0]) / len(portfolioReturns)
-
-        # Metrics and Corresponding values
-        metrics = [
-            'Sharpe Ratio',
-            'Sortino Ratio',
-            'Annual Volatility',
-            'Highest Return',
-            'Lowest Return',
-            'Mean Return',
-            'Total Return',
-            'Win Ratio'
-        ]
-        values = [VOLATILITY, MAX_RETURNS, MIN_RETURNS, AVERAGE, TOTAL, HIT]
-        values = [round(SHARPE, 2), round(SORTINO, 2)] + [f"{round(x*100, 2)}%" for x in values]
-
-        logger.info("BACKTEST SUCCESSFUL")
-
-        # Returning in table format
-        return (zip(metrics, values))
+        except Exception as e:
+            logger.exception("FETCH FAILED")
+            raise self.PortfolioError(f"Failed to fetch data due to an underlying error: {e}")

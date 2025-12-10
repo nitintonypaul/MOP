@@ -205,3 +205,42 @@ def Kelly(w, fr, tickers, data):
     else:
         logger.error("KELLY OPTIMIZATION FAILED")
         raise ValueError("Kelly Optimization failed")
+
+# Entropic Risk Minimization Model
+def ERM(w, theta, tickers, data):
+    logger.info("ERM OPTIMIZATION INITIATED")
+
+    # ERM Objective 
+    # Minimize 1/theta * log E[exp(-theta * X)]
+    def f(w):
+
+        N = trimmed_returns.shape[0]
+        SUM = 0
+
+        for i in range(N):
+            sample = trimmed_returns[i]
+            X = np.dot(w, sample)
+            SUM += np.exp(-theta * X)
+
+        return (1/theta * np.log(SUM/N))
+
+    # Robustness check
+    if theta <= 0:
+        logger.error("INVALID ERM RISK AVERSION")
+        raise ValueError("Risk aversion is out of bounds (0,inf)")
+    
+    returns_list = []
+    for i in tickers:
+        returns_list.append(data[i]["Close"].pct_change(fill_method=None).dropna().values)
+
+    # Failsafe
+    minLen = min(len(x) for x in returns_list)
+    trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
+
+    result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
+    if result.success:
+        logger.info("ERM OPTIMIZATION SUCCESSFUL")
+        return result.x
+    else:
+        logger.error("ERM OPTIMIZATION FAILED")
+        raise ValueError("ERM Optimization failed")

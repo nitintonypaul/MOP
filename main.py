@@ -1,18 +1,6 @@
 from mopEngine.portfolio import Portfolio
 import numpy as np
-import logging
 from tabulate import tabulate
-
-# Logging configurations
-# Logging to terminal
-logging.basicConfig(
-    level=logging.INFO, 
-    format="[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s",
-    datefmt="%H:%M:%S",
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
 
 #TICKERS = ["AAPL", "TSLA", "MSFT", "JPM"]
 #AMOUNT = 10000
@@ -45,18 +33,15 @@ AMOUNT = float(input("ENTER INVESTMENT AMOUNT: "))
 # Declaring portfolio object
 investments = Portfolio(tickers=TICKERS, amount=AMOUNT)
 
-# Optimizing Portfolio with various objectives
 print("\nPORTFOLIO DATA BEFORE OPTIMIZING")
 print(investments.Stats())
 
-investments.Optimize(method="cvar")
-print("\nPORTFOLIO DATA AFTER CVAR")
-print(investments.Stats())
+# Optimizing Portfolio
+investments.Optimize(method="erm", theta=1)
 
-investments.Optimize(method="kelly", fraction=0.7)
-print("\nPORTFOLIO DATA AFTER KELLY CRITERION")
+print("\nPORTFOLIO DATA AFTER ERM OPTIMIZATION")
 print(investments.Stats())
 
 # MVB (Minimum Viable Backtest)
 print("\nPERFORMANCE METRICS")
-print(tabulate(list(investments.Performance()), headers=["METRIC", "VALUE"], tablefmt="plain"))
+print(tabulate(list(investments.Performance(start_date="2020-01-01", end_date="2025-01-01", cost=0.0005)), headers=["METRIC", "VALUE"], tablefmt="plain"))

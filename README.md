@@ -19,9 +19,10 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
     * **Conditional Value at Risk (CVaR):** Focuses on minimizing losses in the worst-case scenarios (tail risk).
     * **Mean-CVaR:** Maximizes return while minimizing worst-case (tail) losses.
     * **Kelly Criterion:** Allocates weights to maximize the expected logarithmic growth of wealth, focusing on long-term compounding. Fractional Kelly can be used to reduce volatility while preserving most of the growth potential.
+    * **Entropic Risk Minimization (ERM):** Allocates weights to balance return and downside risk, penalizing large losses exponentially.
 * **Black-Litterman Model Integration:** Fuses market-implied returns with an investor's custom views to produce more stable and intuitive allocations.
 * **Robust Risk Modeling:** Uses the Ledoit-Wolf shrinkage estimator to compute a well-conditioned and stable covariance matrix.
-* **Performance Backtesting:** Evaluates a "buy-and-hold" portfolio strategy against historical data, reporting key metrics like Sharpe Ratio, Sortino Ratio, and total returns.
+* **Performance Backtesting:** Evaluates a portfolio against historical data, reporting key metrics like Sharpe Ratio, Sortino Ratio, and total returns.
 * **Portfolio Persistence:** Save your configured portfolios to disk and load them back in later sessions for continued analysis.
 
 ---
@@ -177,12 +178,12 @@ This will calculate the asset weights that result in the lowest possible portfol
 
 ### 4. Analyzing Performance
 
-After optimizing, you can run a simple backtest with the `.Performance()` method. This evaluates how your new (static) weights would have performed over the past year.
+After optimizing, you can run a simple backtest with the `.Performance()` method. This evaluates how your new (constant) weights would have performed over the past year. One can input the starting and ending dates for the backtest along with the trading cost.
 
 The method returns a list of (metric, value) tuples, which can be easily printed or converted to a dictionary.
 ```py
     print("\n--- Backtest Performance Results ---")
-    performance_results = p.Performance()
+    performance_results = p.Performance(start_date="2020-01-01", end_date="2025-01-01", cost=0.0005)
 
     # Use tabulate for a clean printout
     from tabulate import tabulate
@@ -194,27 +195,25 @@ The method returns a list of (metric, value) tuples, which can be easily printed
     --- Backtest Performance Results ---
     METRIC                      VALUE
     ------------------------  ---------
-    Sharpe                      1.845
-    Sortino                     3.123
-    Volatility (Annual)         18.551%
-    Highest Return (Daily)      2.781%
-    Lowest Return (Daily)       -3.411%
-    Average Return (Daily)      0.142%
-    Total Return (Compounded)   41.876%
-    Win Ratio                   58.110%
+    Sharpe Ratio                1.84
+    Sortino Ratio               3.12
+    Volatility                  18.55%
+    Mean Return                 0.07%
+    Total Return                41.87%
+    CAGR                        18.80%
 
 ### 5. Saving and Loading a Portfolio
 
 You can persist your portfolio's state (tickers, weights, and amount) to a file and load it back later. This is useful for saving the results of a time-consuming optimization.
 
 #### Saving the Portfolio
-The `Portfolio.Save()` is a classmethod. You pass it the portfolio instance and a filename.
+The `Portfolio.Save()` is a classmethod. You pass it the portfolio instance and a filename to save it as a `.folio` file containing weights, tickers and investment amounts.
 
 ```py
     # Save our optimized portfolio to 'my_tech_portfolio.bin'
     filename = "my_tech_portfolio"
     Portfolio.Save(p, filename)
-    print(f"\nPortfolio saved to {filename}.bin")
+    print(f"\nPortfolio saved to {filename}.folio")
 ```
 
 #### Loading the Portfolio
