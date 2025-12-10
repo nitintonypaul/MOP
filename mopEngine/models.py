@@ -171,7 +171,7 @@ def Kelly(w, fr, tickers, data):
     logger.info("KELLY OPTIMIZATION INITIATED")
 
     # Kelly Objective 
-    # Minimize E[log(1+wTr)]
+    # Minimize -E[log(1+wTr)]
     def f(w):
 
         N = trimmed_returns.shape[0]
