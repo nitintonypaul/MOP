@@ -89,6 +89,11 @@ def CVaR(w, tickers, ALPHA, data):
 
         return v + (SUM / ((1 - ALPHA) * N))
 
+    # Robustness check
+    if ALPHA > 1 or ALPHA < 0:
+        logger.error("INVALID CVAR CONFIDENCE")
+        raise ValueError("Confidence is out of bounds (0,1)")
+    
     V = 1
     x0 = np.append(w, V)
 
@@ -135,7 +140,12 @@ def MCVaR(w, tickers, ALPHA, data):
         cvar = v + (SUM / ((1 - ALPHA) * N))
 
         return cvar - (MEAN_TERM/N)
-
+    
+    # Robustness check
+    if ALPHA > 1 or ALPHA < 0:
+        logger.error("INVALID CVAR CONFIDENCE")
+        raise ValueError("Confidence is out of bounds (0,1)")
+    
     V = 1
     x0 = np.append(w, V)
 
@@ -148,10 +158,50 @@ def MCVaR(w, tickers, ALPHA, data):
     minLen = min(len(x) for x in returns_list)
     trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
 
-    result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None,None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
+    result = minimize(f, x0, method='SLSQP', bounds=[(0,1)]*len(w) + [(None), (None)], constraints= [{'type':'eq','fun': lambda x: x[:-1].sum()-1}])
     if result.success:
         logger.info("MCVAR OPTIMIZATION SUCCESSFUL")
         return result.x[:-1]
     else:
         logger.error("MCVAR OPTIMIZATION FAILED")
         raise ValueError("Mean-CVaR Optimization failed")
+
+# Kelly Criterion Model
+def Kelly(w, fr, tickers, data):
+    logger.info("KELLY OPTIMIZATION INITIATED")
+
+    # Kelly Objective 
+    # Minimize E[log(1+wTr)]
+    def f(w):
+
+        N = trimmed_returns.shape[0]
+        SUM = 0
+
+        # Expectation robust against outliers
+        for i in range(N):
+            sample = trimmed_returns[i]
+            portfolio_returns = max(np.dot(w, sample), -0.99)
+            SUM += np.log(1+ fr * portfolio_returns)
+
+        return -SUM / N
+
+    # Robustness check
+    if fr > 1 or fr <= 0:
+        logger.error("INVALID KELLY FRACTION")
+        raise ValueError("Fraction is out of bounds (0,1]")
+    
+    returns_list = []
+    for i in tickers:
+        returns_list.append(data[i]["Close"].pct_change(fill_method=None).dropna().values)
+
+    # Failsafe
+    minLen = min(len(x) for x in returns_list)
+    trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
+
+    result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
+    if result.success:
+        logger.info("KELLY OPTIMIZATION SUCCESSFUL")
+        return result.x
+    else:
+        logger.error("KELLY OPTIMIZATION FAILED")
+        raise ValueError("Kelly Optimization failed")

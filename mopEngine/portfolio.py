@@ -125,7 +125,8 @@ class Portfolio:
             omega=None, 
             confidence=0.9,
             lambdaBL=2.5,
-            tauBL=0.025
+            tauBL=0.025,
+            fraction=1
         ):
 
         tickers_length = len(self.tickers)
@@ -144,7 +145,8 @@ class Portfolio:
             "mdp":[models.MDP, [tempweights, self.covar*time, self.Volatility()*np.sqrt(time)]],
             "mean-variance":[models.MVO, [tempweights, self.covar*time, risk, self.tickers, p, q, omega, lambdaBL, tauBL]],
             "cvar":[models.CVaR, [tempweights, self.tickers, confidence, self.history]],
-            "mean-cvar":[models.MCVaR, [tempweights, self.tickers, confidence, self.history]]
+            "mean-cvar":[models.MCVaR, [tempweights, self.tickers, confidence, self.history]],
+            "kelly": [models.Kelly, [tempweights, fraction, self.tickers, self.history]]
         }
 
         # Checking if optimizer is valid
@@ -193,17 +195,17 @@ class Portfolio:
 
         # Metrics and Corresponding values
         metrics = [
-            'Sharpe',
-            'Sortino',
-            'Volatility (Annual)',
-            'Highest Return (Daily)',
-            'Lowest Return (Daily)',
-            'Average Return (Daily)',
-            'Total Return (Compounded)',
+            'Sharpe Ratio',
+            'Sortino Ratio',
+            'Annual Volatility',
+            'Highest Return',
+            'Lowest Return',
+            'Mean Return',
+            'Total Return',
             'Win Ratio'
         ]
         values = [VOLATILITY, MAX_RETURNS, MIN_RETURNS, AVERAGE, TOTAL, HIT]
-        values = [round(SHARPE, 3), round(SORTINO, 3)] + [f"{round(x*100, 3)}%" for x in values]
+        values = [round(SHARPE, 2), round(SORTINO, 2)] + [f"{round(x*100, 2)}%" for x in values]
 
         logger.info("BACKTEST SUCCESSFUL")
 

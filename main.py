@@ -53,8 +53,8 @@ investments.Optimize(method="cvar")
 print("\nPORTFOLIO DATA AFTER CVAR")
 print(investments.Stats())
 
-investments.Optimize(method="mdp")
-print("\nPORTFOLIO DATA AFTER MDP")
+investments.Optimize(method="kelly", fraction=0.7)
+print("\nPORTFOLIO DATA AFTER KELLY CRITERION")
 print(investments.Stats())
 
 # MVB (Minimum Viable Backtest)

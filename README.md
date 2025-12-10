@@ -18,6 +18,7 @@ This project aims to develop a **multi-objective portfolio allocation engine** i
     * **Mean-Variance Optimization (MVO):** The classic Markowitz model to balance risk and return (Black Litterman).
     * **Conditional Value at Risk (CVaR):** Focuses on minimizing losses in the worst-case scenarios (tail risk).
     * **Mean-CVaR:** Maximizes return while minimizing worst-case (tail) losses.
+    * **Kelly Criterion:** Allocates weights to maximize the expected logarithmic growth of wealth, focusing on long-term compounding. Fractional Kelly can be used to reduce volatility while preserving most of the growth potential.
 * **Black-Litterman Model Integration:** Fuses market-implied returns with an investor's custom views to produce more stable and intuitive allocations.
 * **Robust Risk Modeling:** Uses the Ledoit-Wolf shrinkage estimator to compute a well-conditioned and stable covariance matrix.
 * **Performance Backtesting:** Evaluates a "buy-and-hold" portfolio strategy against historical data, reporting key metrics like Sharpe Ratio, Sortino Ratio, and total returns.
