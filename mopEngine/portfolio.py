@@ -133,7 +133,8 @@ class Portfolio:
             lambdaBL=2.5,
             tauBL=0.025,
             fraction=1,
-            theta=0.3
+            theta=0.3,
+            gamma=3
         ):
 
         tickers_length = len(self.tickers)
@@ -154,7 +155,8 @@ class Portfolio:
             "cvar":[models.CVaR, [tempweights, self.tickers, confidence, self.history]],
             "mean-cvar":[models.MCVaR, [tempweights, self.tickers, confidence, self.history]],
             "kelly": [models.Kelly, [tempweights, fraction, self.tickers, self.history]],
-            "erm": [models.ERM, [tempweights, theta, self.tickers, self.history]]
+            "erm": [models.ERM, [tempweights, theta, self.tickers, self.history]],
+            "crra": [models.CRRA, [tempweights, gamma, self.tickers, self.history]]
         }
 
         # Checking if optimizer is valid

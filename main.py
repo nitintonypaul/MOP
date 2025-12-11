@@ -37,9 +37,9 @@ print("\nPORTFOLIO DATA BEFORE OPTIMIZING")
 print(investments.Stats())
 
 # Optimizing Portfolio
-investments.Optimize(method="erm", theta=1)
+investments.Optimize(method="crra", gamma=4)
 
-print("\nPORTFOLIO DATA AFTER ERM OPTIMIZATION")
+print("\nPORTFOLIO DATA AFTER CRRA OPTIMIZATION")
 print(investments.Stats())
 
 # MVB (Minimum Viable Backtest)

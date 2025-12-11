@@ -205,8 +205,48 @@ def Kelly(w, fr, tickers, data):
     else:
         logger.error("KELLY OPTIMIZATION FAILED")
         raise ValueError("Kelly Optimization failed")
+    
+# Constant Relative Risk Aversion Model
+def CRRA(w, gamma, tickers, data):
+    logger.info("CRRA OPTIMIZATION INITIATED")
 
-# Entropic Risk Minimization Model
+    # CRRA Objective 
+    # Minimize -E[W^(1-gamma)/(1-gamma)]
+    def f(w):
+
+        N = trimmed_returns.shape[0]
+        SUM = 0
+        
+        # Expectation robust against outliers
+        for i in range(N):
+            sample = trimmed_returns[i]
+            wealth_multiple = max(1 + np.dot(w, sample), 0.01)
+            SUM += (wealth_multiple) ** (1-gamma)
+
+        return -SUM / (N * (1-gamma))
+
+    # Robustness check
+    if gamma <= 1:
+        logger.error("INVALID RISK AVERSION")
+        raise ValueError("Risk Aversion is out of bounds (1,inf]")
+    
+    returns_list = []
+    for i in tickers:
+        returns_list.append(data[i]["Close"].pct_change(fill_method=None).dropna().values)
+
+    # Failsafe
+    minLen = min(len(x) for x in returns_list)
+    trimmed_returns = np.array([r[-minLen:] for r in returns_list]).T
+
+    result = minimize(f, w, method='SLSQP', bounds=[(0,1)]*len(w), constraints= [{'type':'eq','fun': lambda x: x.sum()-1}])
+    if result.success:
+        logger.info("CRRA OPTIMIZATION SUCCESSFUL")
+        return result.x
+    else:
+        logger.error("CRRA OPTIMIZATION FAILED")
+        raise ValueError("CRRA Optimization failed")
+
+# Entropic Risk Measure Model
 def ERM(w, theta, tickers, data):
     logger.info("ERM OPTIMIZATION INITIATED")
 
